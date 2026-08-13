@@ -1,6 +1,10 @@
 import streamlit as st
 import math
 
+from fpdf import FPDF
+import tempfile
+import os
+
 # เพิ่มโค้ดส่วนนี้ไว้หลัง import
 st.warning("⚠️ **นี่คือเวอร์ชันทดสอบ (Demo/Beta)** เพื่อการพัฒนาฟีเจอร์ใหม่ หากพบข้อผิดพลาดกรุณาแจ้งผู้พัฒนา")
 
@@ -38,10 +42,6 @@ def calculate_thai_cv_risk(age, sex, sbp, dm, smoking, chol=0, waist=0, height=0
 
     risk_pct = predicted_risk * 100
     return max(0.0, min(100.0, risk_pct))
-
-from fpdf import FPDF
-import tempfile
-import os
 
 def create_pdf_report(data):
     pdf = FPDF()
