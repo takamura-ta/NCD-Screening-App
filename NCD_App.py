@@ -1,22 +1,39 @@
 import streamlit as st
 import math
 
-# --- 🧠 ฟังก์ชันคำนวณ Thai ASCVD Risk ---
-def calculate_thai_cv_risk(age, sex, sbp, dm, smoking, chol=None, waist=None, height=None):
-    if chol is not None and chol > 0:
-        # Formula with Total Cholesterol
-        full_score = (0.08183 * age) + (0.39499 * sex) + (0.02084 * sbp) + \
-                     (0.69974 * dm) + (0.00212 * chol) + (0.41916 * smoking)
-        risk_pct = (1 - (0.978296 ** math.exp(full_score - 7.04423))) * 100
-    elif waist is not None and height is not None and height > 0:
-        # Formula without blood testing (using waist-to-height ratio)
-        wh_ratio = waist / height
-        full_score = (0.079 * age) + (0.128 * sex) + (0.019350987 * sbp) + \
-                     (0.58454 * dm) + (3.512566 * wh_ratio) + (0.459 * smoking)
-        risk_pct = (1 - (0.978296 ** math.exp(full_score - 7.720484))) * 100
-    else:
-        return 0.0
-        
+def calculate_thai_cv_risk(age, sex, sbp, dm, smoking, chol=0, waist=0, height=0):
+    """
+    Calculates the 10-year Thai CV Risk Score (EGAT-based model, Version 2.5).
+    Validated against Rama Thai CV risk score 2.5 (Copyright 2021).
+    """
+    if age < 30 or age > 70:
+        return 0.0 # สูตรนี้ออกแบบมาสำหรับคนอายุ 30-70 ปีครับ
+
+    full_score = 0
+    predicted_risk = 0
+    sur_root = 0.964588 # อัปเดตตามโค้ดต้นฉบับ
+
+    if sbp >= 70:
+        if chol > 0:
+            # 🩸 สูตรที่ 1: ใช้ Total Cholesterol (เจาะเลือด)
+            full_score = (0.08183 * age) + (0.39499 * sex) + (0.02084 * sbp) + \
+                         (0.69974 * dm) + (0.00212 * chol) + (0.41916 * smoking)
+            predicted_risk = 1 - (sur_root ** math.exp(full_score - 7.04423))
+            
+        elif waist > 0 and height > 0:
+            # 📏 สูตรที่ 2: ใช้สัดส่วนรอบเอวต่อส่วนสูง (WHR)
+            whr = waist / height
+            full_score = (0.079 * age) + (0.128 * sex) + (0.019350987 * sbp) + \
+                         (0.58454 * dm) + (3.512566 * whr) + (0.459 * smoking)
+            predicted_risk = 1 - (sur_root ** math.exp(full_score - 7.712325))
+            
+        elif waist > 0:
+            # 👖 สูตรที่ 3: ใช้แค่รอบเอว (WC) อย่างเดียว
+            full_score = (0.08372 * age) + (0.05988 * sex) + (0.02034 * sbp) + \
+                         (0.59953 * dm) + (0.01283 * waist) + (0.459 * smoking)
+            predicted_risk = 1 - (sur_root ** math.exp(full_score - 7.31047))
+
+    risk_pct = predicted_risk * 100
     return max(0.0, min(100.0, risk_pct))
 
 # --- ⚙️ การตั้งค่าหน้าจอ ---
