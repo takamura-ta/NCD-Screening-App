@@ -38,14 +38,6 @@ def calculate_thai_cv_risk(age, sex, sbp, dm, smoking, chol=0, waist=0, height=0
 
     risk_pct = predicted_risk * 100
     return max(0.0, min(100.0, risk_pct))
-
-# ปุ่มสั่งพิมพ์หน้าจอเป็น PDF ทันทีผ่านเบราว์เซอร์
-if st.button("🖨️ พิมพ์ / บันทึกรายงานเป็น PDF"):
-    st.markdown("""
-        <script>
-            window.print();
-        </script>
-    """, unsafe_allow_html=True)
     
 # --- ⚙️ การตั้งค่าหน้าจอ ---
 st.set_page_config(page_title="NCD Clinical Dashboard", layout="centered")
@@ -267,20 +259,10 @@ if st.button("ประมวลผลการรักษา (Evaluate) 📊",
     else:
         st.success("✅ **ดูแลต่อเนื่องตามแผนการรักษาเดิมได้ (ตามนัด)**")
 
-    # สร้างข้อมูลสรุปสำหรับ PDF
-    report_data = {
-        "Age": age,
-        "DM Group": dm_group,
-        "ASCVD Risk": f"{ascvd_risk:.2f}%",
-        "Result": "Normal" if not need_doctor_consult else "Consult Required"
-    }
-
-    # สร้างปุ่มดาวน์โหลด PDF
-    pdf_path = create_pdf_report(report_data)
-    with open(pdf_path, "rb") as pdf_file:
-        st.download_button(
-            label="📄 ดาวน์โหลดรายงานสรุป (PDF)",
-            data=pdf_file,
-            file_name="NCD_Report.pdf",
-            mime="application/pdf"
-        )
+    # ปุ่มสั่งพิมพ์หน้าจอเป็น PDF ทันทีผ่านเบราว์เซอร์
+    if st.button("🖨️ พิมพ์ / บันทึกรายงานเป็น PDF"):
+        st.markdown("""
+            <script>
+                window.print();
+            </script>
+        """, unsafe_allow_html=True)
