@@ -31,8 +31,8 @@ with col_demo1:
     age = st.number_input("อายุ (ปี) 🎂", min_value=1, max_value=120, value=55)
     sex_input = st.radio("เพศ 🚻", ["ชาย", "หญิง"])
     sex = 1 if sex_input == "ชาย" else 0
-    smoking_input = st.radio("ประวัติสูบบุหรี่ 🚬", ["ไม่สูบ", "สูบปัจจุบัน"])
-    smoking = 1 if smoking_input == "สูบปัจจุบัน" else 0
+    smoking_input = st.radio("ประวัติสูบบุหรี่ 🚬", ["ไม่สูบ", "ปัจจุบันสูบบุหรี่"])
+    smoking = 1 if smoking_input == "ปัจจุบันสูบปัจจุบัน" else 0
 
 with col_demo2:
     height = st.number_input("ส่วนสูง (ซม.) 📏", value=165.0)
