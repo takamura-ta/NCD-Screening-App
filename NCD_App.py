@@ -39,7 +39,7 @@ st.subheader("🩸 3. ผลการตรวจทางห้องปฏิ�
 col1, col2 = st.columns(2)
 with col1:
     fpg = st.number_input("FPG (mg/dL) 🩸", value=0)
-    hba1c = st.number_input("HbA1c (%) 🧪", value=, step=0.1)
+    hba1c = st.number_input("HbA1c (%) 🧪", value=0, step=0.1)
 with col2:
     egfr = st.number_input("eGFR (ml/min) 💧", value=0)
     sbp = st.number_input("SBP (mmHg) 🩺", value=0)
