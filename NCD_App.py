@@ -41,27 +41,31 @@ def calculate_thai_cv_risk(age, sex, sbp, dm, smoking, chol=0, waist=0, height=0
 
 from fpdf import FPDF
 import tempfile
+import os
 
 def create_pdf_report(data):
     pdf = FPDF()
     pdf.add_page()
     
-    # กำหนดฟอนต์ (ถ้าไม่มีฟอนต์ภาษาไทย จะแสดงผลไม่ได้ แนะนำใช้ภาษาอังกฤษสรุปผล หรือใช้ฟอนต์มาตรฐาน)
-    # หมายเหตุ: การใช้ฟอนต์ภาษาไทยใน FPDF ต้องมีการ AddFont เข้าไปเพิ่ม 
-    # เพื่อความง่ายสำหรับเวอร์ชันนี้ ผมสรุปเป็นหัวข้อภาษาอังกฤษแบบทางการครับ
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(200, 10, txt="NCD Screening Summary Report", ln=True, align='C')
+    # ดึงพาธของฟอนต์ (สมมติว่าอัปโหลดไว้ในโฟลเดอร์ fonts)
+    font_path = os.path.join("fonts", "THSarabunNew.ttf")
+    pdf.add_font("THSarabunNew", "", font_path, uni=True)
+    pdf.set_font("THSarabunNew", size=18)
+    
+    # เขียนหัวข้อ
+    pdf.cell(200, 10, txt="สรุปผลการคัดกรอง NCD", ln=True, align='C')
     pdf.ln(10)
     
-    pdf.set_font("Arial", size=12)
+    # เขียนข้อมูล
     for key, value in data.items():
-        pdf.cell(200, 10, txt=f"{key}: {value}", ln=True)
+        # แปลงข้อความเป็น UTF-8 ให้แสดงผลภาษาไทย
+        text = f"{key}: {value}"
+        pdf.cell(200, 10, txt=text.encode('latin-1', 'replace').decode('latin-1'), ln=True)
     
-    # สร้างไฟล์ชั่วคราว
     tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
     pdf.output(tmp_file.name)
     return tmp_file.name
-
+    
 # --- ⚙️ การตั้งค่าหน้าจอ ---
 st.set_page_config(page_title="NCD Clinical Dashboard", layout="centered")
 st.title("🩺 NCD Clinical Dashboard Pro")
