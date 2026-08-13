@@ -2,14 +2,15 @@ import streamlit as st
 
 st.set_page_config(page_title="NCD Clinical Dashboard", layout="centered")
 st.title("🩺 NCD Clinical Dashboard Pro")
+st.markdown("ระบบประเมินผลเลือดและเป้าหมายการรักษาผู้ป่วย (DM, HT, DLP, CKD) 📊")
 
 # --- 👤 ข้อมูลผู้ป่วย ---
-st.subheader("👤 ข้อมูลพื้นฐาน")
-age = st.number_input("อายุ (ปี)", min_value=1, max_value=120, value=60)
+st.subheader("👤 1. ข้อมูลพื้นฐาน")
+age = st.number_input("อายุ (ปี) 🎂", min_value=1, max_value=120, value=0)
 
-# --- เลือกปัจจัยความเสี่ยง (Logic อัตโนมัติ) ---
-st.subheader("📋 เลือกปัจจัยความเสี่ยงของผู้ป่วย")
-factors = st.multiselect("เลือกปัจจัยที่พบ (เลือกได้หลายข้อ):", [
+# --- เลือกปัจจัยความเสี่ยงหลัก (Logic จัดกลุ่มเบาหวาน) ---
+st.subheader("📋 2. ปัจจัยความซับซ้อนของผู้ป่วย")
+factors = st.multiselect("เลือกลักษณะที่พบในผู้ป่วย (เพื่อจัดกลุ่มเป้าหมาย DM) 📌:", [
     "Bed ridden", 
     "ต้องใช้ Home oxygen", 
     "มะเร็งระยะกระจาย / Palliative care",
@@ -20,8 +21,7 @@ factors = st.multiselect("เลือกปัจจัยที่พบ (เ�
     "Stroke (ช่วยเหลือตนเองได้)"
 ])
 
-# --- การตัดสินใจกลุ่ม (Logic Calculation) ---
-# Logic: ถ้ามีปัจจัยกลุ่มซับซ้อนสูง ให้เข้ากลุ่ม 3 ก่อน ถ้าไม่มีค่อยไปดูกลุ่ม 2 ถ้าไม่มีเลยคือกลุ่ม 1
+# --- การตัดสินใจกลุ่มเบาหวาน ---
 is_high_complexity = (age > 75) or any(x in factors for x in ["Bed ridden", "ต้องใช้ Home oxygen", "มะเร็งระยะกระจาย / Palliative care"])
 is_moderate_complexity = (age > 65) or any(x in factors for x in ["Heart failure", "COPD", "CKD eGFR < 60", "Myocardial infarction", "Stroke (ช่วยเหลือตนเองได้)"])
 
@@ -32,53 +32,78 @@ elif is_moderate_complexity:
 else:
     dm_group = "เป็นเบาหวาน (กลุ่มสุขภาพดี/ควบคุมเข้มข้น)"
 
-st.info(f"ระบบจัดกลุ่มผู้ป่วยให้ท่าน: **{dm_group}**")
-
-# --- 🩺 ความดันและไขมัน ---
-st.subheader("🩺 ความดันโลหิตและไขมัน")
-col_ht, col_ldl = st.columns(2)
-with col_ht:
-    sbp = st.number_input("SBP (mmHg)", value=120)
-    dbp = st.number_input("DBP (mmHg)", value=80)
-with col_ldl:
-    ldl = st.number_input("LDL-C (mg/dL)", value=100)
-    tg = st.number_input("TG (mg/dL)", value=150)
+st.info(f"💡 ระบบจัดกลุ่มผู้ป่วยให้อัตโนมัติ: **{dm_group}**")
 
 # --- 🩸 ผล Lab ---
-st.subheader("🩸 ผล Lab อื่นๆ")
-fpg = st.number_input("FPG (mg/dL)", value=100)
-hba1c = st.number_input("HbA1c (%)", value=6.0, step=0.1)
-egfr = st.number_input("eGFR (ml/min)", value=90.0)
+st.subheader("🩸 3. ผลการตรวจทางห้องปฏิบัติการ (Labs)")
+col1, col2 = st.columns(2)
+with col1:
+    fpg = st.number_input("FPG (mg/dL) 🩸", value=0)
+    hba1c = st.number_input("HbA1c (%) 🧪", value=, step=0.1)
+with col2:
+    egfr = st.number_input("eGFR (ml/min) 💧", value=0)
+    sbp = st.number_input("SBP (mmHg) 🩺", value=0)
 
-# --- 🚀 ประมวลผล ---
-if st.button("ประเมินผล (Evaluate)", use_container_width=True):
+# --- 🚨 สเตป 2: คัดกรองความเสี่ยงสำหรับกลุ่ม "ควบคุมเข้มข้น" ---
+risk_level = "ไม่ได้ประเมิน"
+if dm_group == "เป็นเบาหวาน (กลุ่มสุขภาพดี/ควบคุมเข้มข้น)":
     st.markdown("---")
+    st.markdown("### 🔍 สเตป 2: ประเมินความเสี่ยงการเกิด Complications")
+    st.markdown("*(ฟอร์มนี้แสดงเฉพาะกลุ่มผู้ป่วยที่ต้องการการควบคุมอย่างเข้มข้น)*")
+    
+    col3, col4 = st.columns(2)
+    with col3:
+        uacr = st.selectbox("💧 ค่า UACR", ["<30", "30-300", ">300"])
+        renal = st.selectbox("💧 การทำงานของไต", ["ปกติ", "CrCl < 60", "มีอาการบวม หรือ CrCl < 30"])
+        eye = st.selectbox("👁️ จอประสาทตา (DR)", ["ไม่มี Diabetic retinopathy", "Mild NPDR", "Moderate NPDR / การมองเห็นลดลง", "Severe NPDR/PDR / มองไม่เห็นจนกระทบชีวิต"])
+    with col4:
+        foot = st.selectbox("🦶 การตรวจเท้า", ["ปกติ", "ผิดปกติ", "มีแผลที่เท้า / อาการ claudication", "Digital gangrene"])
+        hypo = st.selectbox("📉 ประวัติ Hypoglycemia", ["ไม่มี / นานๆครั้ง", ">= 3 ครั้งต่อสัปดาห์", "รุนแรงจนต้องเข้านอน รพ. ในช่วง 3 เดือน"])
+        cvd = st.selectbox("🫀 โรคร่วม (HT, DLP, MI, Stroke)", ["ไม่มี", "มี แต่ควบคุมได้ (ตามเกณฑ์)", "มี แต่ควบคุมไม่ได้ (ตามเกณฑ์)", "Chest pain/Recent stroke <1 ปี/Recent MI <1 ปี/HF <3 เดือน"])
+
+    # ประมวลผล Risk Level โดยอิงจากความรุนแรงสูงสุด (Worst-case scenario)
+    if (hypo == "รุนแรงจนต้องเข้านอน รพ. ในช่วง 3 เดือน") or (renal == "มีอาการบวม หรือ CrCl < 30") or (eye == "Severe NPDR/PDR / มองไม่เห็นจนกระทบชีวิต") or (cvd == "Chest pain/Recent stroke <1 ปี/Recent MI <1 ปี/HF <3 เดือน") or (foot == "Digital gangrene"):
+        risk_level = "ความเสี่ยงสูงมาก / มีโรคแทรกซ้อนรุนแรง 🚨"
+    elif (hba1c >= 8.0) or (hypo == ">= 3 ครั้งต่อสัปดาห์") or (uacr == ">300") or (renal == "CrCl < 60") or (eye == "Moderate NPDR / การมองเห็นลดลง") or (cvd == "มี แต่ควบคุมไม่ได้ (ตามเกณฑ์)") or (foot == "มีแผลที่เท้า / อาการ claudication"):
+        risk_level = "ความเสี่ยงสูง 🔴"
+    elif (7.0 <= hba1c <= 7.5) or (uacr == "30-300") or (eye == "Mild NPDR") or (cvd == "มี แต่ควบคุมได้ (ตามเกณฑ์)") or (foot == "ผิดปกติ"):
+        risk_level = "ความเสี่ยงปานกลาง 🟡"
+    else:
+        risk_level = "ความเสี่ยงต่ำ 🟢"
+
+# --- 🚀 ประมวลผลและสรุป ---
+st.markdown("---")
+if st.button("ประมวลผลการรักษา (Evaluate) 📊", use_container_width=True):
+    st.header("📋 สรุปผลการประเมิน (Assessment)")
     
     # DM Eval
-    st.write("### 🍬 สรุปการควบคุม DM")
+    st.write("### 🍬 การควบคุมเบาหวาน (Diabetes)")
     if dm_group == "เป็นเบาหวาน (กลุ่มสุขภาพดี/ควบคุมเข้มข้น)":
-        if (80 <= fpg <= 130) and (6.5 <= hba1c <= 7.5): st.success("🟢 อยู่ในเกณฑ์เป้าหมายเข้มข้น")
-        else: st.error("🔴 นอกเกณฑ์เป้าหมายเข้มข้น")
+        if (80 <= fpg <= 130) and (6.5 <= hba1c <= 7.5):
+            st.success("🟢 ระดับน้ำตาลอยู่ในเกณฑ์เป้าหมายเข้มข้น (FPG 80-130, HbA1c 6.5-7.5%)")
+        else:
+            st.error("🔴 ระดับน้ำตาลไม่เป็นไปตามเป้าหมายควบคุมเข้มข้น")
+        
+        # แสดงระดับความเสี่ยงที่ประเมินได้
+        st.write(f"**ระดับความเสี่ยง Complications:** {risk_level}")
+
     elif dm_group == "เป็นเบาหวาน (กลุ่มสูงอายุ/ซับซ้อนปานกลาง)":
-        if (90 <= fpg <= 150) and (hba1c < 8.0): st.success("🟢 อยู่ในเกณฑ์เป้าหมาย")
-        else: st.error("🔴 นอกเกณฑ์เป้าหมาย")
+        if (90 <= fpg <= 150) and (hba1c < 8.0): st.success("🟢 ระดับน้ำตาลอยู่ในเกณฑ์เป้าหมาย (FPG 90-150, HbA1c <8%)")
+        else: st.error("🔴 ระดับน้ำตาลสูงกว่าเป้าหมายควบคุม")
     else: # สูงอายุซับซ้อนสูง
-        if (100 <= fpg <= 180): st.success("🟢 FPG อยู่ในเกณฑ์ปลอดภัย")
-        else: st.error("🔴 FPG อยู่นอกเกณฑ์")
+        if (100 <= fpg <= 180): st.success("🟢 FPG อยู่ในเกณฑ์ป้องกันวิกฤต (100-180 mg%)")
+        else: st.error("🔴 FPG อยู่นอกเกณฑ์ความปลอดภัย")
 
     # HT Eval
-    st.write("### 🩺 สรุปความดันโลหิต")
+    st.write("### 🩺 ความดันโลหิต (Hypertension)")
     if age < 65:
-        if sbp < 130 and dbp < 80: st.success("🟢 อยู่ในเกณฑ์ (<130/80)")
-        else: st.error("🔴 สูงกว่าเกณฑ์")
+        if sbp < 130: st.success("🟢 SBP อยู่ในเกณฑ์ (<130)")
+        else: st.error("🔴 SBP สูงกว่าเกณฑ์")
     else: 
-        if sbp < 140 and dbp < 90: st.success("🟢 อยู่ในเกณฑ์ (<140/90)")
-        else: st.error("🔴 สูงกว่าเกณฑ์")
+        if sbp < 140: st.success("🟢 SBP อยู่ในเกณฑ์ (<140)")
+        else: st.error("🔴 SBP สูงกว่าเกณฑ์")
 
-    # DLP & CKD Eval
-    st.write("### 🧪 สรุปไขมันและไต")
+    # CKD Eval
+    st.write("### 💧 การทำงานของไต (CKD)")
     if egfr < 60: st.error("🔴 พบความเสี่ยงโรคไต (eGFR < 60)")
-    else: st.success("🟢 eGFR ปกติ")
-    
-    # Simple logic for LDL target (can be expanded)
-    st.write(f"ผลประเมินไขมัน: LDL ของคุณคือ {ldl} mg/dL")
+    else: st.success("🟢 eGFR ปกติ (≥ 60)")
