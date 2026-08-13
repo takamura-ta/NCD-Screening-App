@@ -6,7 +6,7 @@ st.markdown("ระบบประเมินผลเลือดและเ�
 
 # --- 👤 ข้อมูลผู้ป่วย ---
 st.subheader("👤 1. ข้อมูลพื้นฐาน")
-age = st.number_input("อายุ (ปี) 🎂", min_value=1, max_value=120, value=0)
+age = st.number_input("อายุ (ปี) 🎂", min_value=1, max_value=120, value=60)
 
 # --- เลือกปัจจัยความเสี่ยงหลัก (Logic จัดกลุ่มเบาหวาน) ---
 st.subheader("📋 2. ปัจจัยความซับซ้อนของผู้ป่วย")
@@ -38,11 +38,11 @@ st.info(f"💡 ระบบจัดกลุ่มผู้ป่วยให�
 st.subheader("🩸 3. ผลการตรวจทางห้องปฏิบัติการ (Labs)")
 col1, col2 = st.columns(2)
 with col1:
-    fpg = st.number_input("FPG (mg/dL) 🩸", value=0)
-    hba1c = st.number_input("HbA1c (%) 🧪", value=0, step=0.1)
+    fpg = st.number_input("FPG (mg/dL) 🩸", value=100)
+    hba1c = st.number_input("HbA1c (%) 🧪", value=6.5, step=0.1)
 with col2:
-    egfr = st.number_input("eGFR (ml/min) 💧", value=0)
-    sbp = st.number_input("SBP (mmHg) 🩺", value=0)
+    egfr = st.number_input("eGFR (ml/min) 💧", value=90.0)
+    sbp = st.number_input("SBP (mmHg) 🩺", value=120)
 
 # --- 🚨 สเตป 2: คัดกรองความเสี่ยงสำหรับกลุ่ม "ควบคุมเข้มข้น" ---
 risk_level = "ไม่ได้ประเมิน"
