@@ -14,16 +14,14 @@ factors = st.multiselect("เลือกลักษณะที่พบใน
     "Bed ridden", 
     "ต้องใช้ Home oxygen", 
     "มะเร็งระยะกระจาย / Palliative care",
-    "Heart failure", 
-    "COPD", 
-    "CKD eGFR < 60", 
-    "Myocardial infarction", 
-    "Stroke (ช่วยเหลือตนเองได้)"
+    "Heart failure รักษาตามอาการ",
+    "Myocardial infarction รักษาตามอาการ", 
+    "Stroke ช่วยเหลือตนเองได้บางส่วน"
 ])
 
 # --- การตัดสินใจกลุ่มเบาหวาน ---
 is_high_complexity = (age > 75) or any(x in factors for x in ["Bed ridden", "ต้องใช้ Home oxygen", "มะเร็งระยะกระจาย / Palliative care"])
-is_moderate_complexity = (age > 65) or any(x in factors for x in ["Heart failure", "COPD", "CKD eGFR < 60", "Myocardial infarction", "Stroke (ช่วยเหลือตนเองได้)"])
+is_moderate_complexity = (age > 65) or any(x in factors for x in ["Heart failure รักษาตามอาการ", "Myocardial infarction รักษาตามอาการ", "Stroke ช่วยเหลือตนเองได้บางส่วน"])
 
 if is_high_complexity:
     dm_group = "เป็นเบาหวาน (กลุ่มสูงอายุ/ซับซ้อนสูง)"
