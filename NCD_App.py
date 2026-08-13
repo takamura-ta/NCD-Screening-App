@@ -39,6 +39,29 @@ def calculate_thai_cv_risk(age, sex, sbp, dm, smoking, chol=0, waist=0, height=0
     risk_pct = predicted_risk * 100
     return max(0.0, min(100.0, risk_pct))
 
+from fpdf import FPDF
+import tempfile
+
+def create_pdf_report(data):
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # กำหนดฟอนต์ (ถ้าไม่มีฟอนต์ภาษาไทย จะแสดงผลไม่ได้ แนะนำใช้ภาษาอังกฤษสรุปผล หรือใช้ฟอนต์มาตรฐาน)
+    # หมายเหตุ: การใช้ฟอนต์ภาษาไทยใน FPDF ต้องมีการ AddFont เข้าไปเพิ่ม 
+    # เพื่อความง่ายสำหรับเวอร์ชันนี้ ผมสรุปเป็นหัวข้อภาษาอังกฤษแบบทางการครับ
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(200, 10, txt="NCD Screening Summary Report", ln=True, align='C')
+    pdf.ln(10)
+    
+    pdf.set_font("Arial", size=12)
+    for key, value in data.items():
+        pdf.cell(200, 10, txt=f"{key}: {value}", ln=True)
+    
+    # สร้างไฟล์ชั่วคราว
+    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+    pdf.output(tmp_file.name)
+    return tmp_file.name
+
 # --- ⚙️ การตั้งค่าหน้าจอ ---
 st.set_page_config(page_title="NCD Clinical Dashboard", layout="centered")
 st.title("🩺 NCD Clinical Dashboard Pro")
@@ -258,3 +281,21 @@ if st.button("ประมวลผลการรักษา (Evaluate) 📊",
         st.warning("⚠️ **ส่งปรึกษาแพทย์เพื่อปรับการรักษา**")
     else:
         st.success("✅ **ดูแลต่อเนื่องตามแผนการรักษาเดิมได้ (ตามนัด)**")
+
+    # สร้างข้อมูลสรุปสำหรับ PDF
+    report_data = {
+        "Age": age,
+        "DM Group": dm_group,
+        "ASCVD Risk": f"{ascvd_risk:.2f}%",
+        "Result": "Normal" if not need_doctor_consult else "Consult Required"
+    }
+
+    # สร้างปุ่มดาวน์โหลด PDF
+    pdf_path = create_pdf_report(report_data)
+    with open(pdf_path, "rb") as pdf_file:
+        st.download_button(
+            label="📄 ดาวน์โหลดรายงานสรุป (PDF)",
+            data=pdf_file,
+            file_name="NCD_Report.pdf",
+            mime="application/pdf"
+        )
