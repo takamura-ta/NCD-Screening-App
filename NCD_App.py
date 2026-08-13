@@ -1,6 +1,9 @@
 import streamlit as st
 import math
 
+# เพิ่มโค้ดส่วนนี้ไว้หลัง import
+st.warning("⚠️ **นี่คือเวอร์ชันทดสอบ (Demo/Beta)** เพื่อการพัฒนาฟีเจอร์ใหม่ หากพบข้อผิดพลาดกรุณาแจ้งผู้พัฒนา")
+
 def calculate_thai_cv_risk(age, sex, sbp, dm, smoking, chol=0, waist=0, height=0):
     """
     Calculates the 10-year Thai CV Risk Score (EGAT-based model, Version 2.5).
