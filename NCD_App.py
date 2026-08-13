@@ -72,7 +72,7 @@ if not is_dm_toggle:
 st.info(f"💡 ระบบจัดกลุ่ม DM: **{dm_group}**")
 
 # --- 🩸 ผล Lab ---
-st.subheader("🩸 3. ผลการตรวจทางห้องปฏิบัติการ (Labs)")
+st.subheader("🩸 3. ความดันโลหิตและผลการตรวจทางห้องปฏิบัติการ (Labs)")
 col1, col2 = st.columns(2)
 with col1:
     fpg = st.number_input("FPG (mg/dL) 🩸", value=100)
@@ -93,7 +93,7 @@ with col4:
 risk_level = "ไม่ได้ประเมิน"
 if dm_group == "เป็นเบาหวาน (กลุ่มสุขภาพดี/ควบคุมเข้มข้น)":
     st.markdown("---")
-    st.markdown("### 🔍 สเตป 2: ประเมินความเสี่ยงการเกิด Complications")
+    st.markdown("### 🔍 ประเมินความเสี่ยงการเกิด Complications")
     col5, col6 = st.columns(2)
     with col5:
         uacr = st.selectbox("💧 ค่า UACR", ["<30", "30-300", ">300"])
