@@ -44,11 +44,11 @@ with col2:
     egfr = st.number_input("eGFR (ml/min) 💧", value=90.0)
     sbp = st.number_input("SBP (mmHg) 🩺", value=120)
 
-# --- 🚨 สเตป 2: คัดกรองความเสี่ยงสำหรับกลุ่ม "ควบคุมเข้มข้น" ---
+# --- 🚨 คัดกรองความเสี่ยงสำหรับกลุ่ม "ควบคุมเข้มข้น" ---
 risk_level = "ไม่ได้ประเมิน"
 if dm_group == "เป็นเบาหวาน (กลุ่มสุขภาพดี/ควบคุมเข้มข้น)":
     st.markdown("---")
-    st.markdown("### 🔍 สเตป 2: ประเมินความเสี่ยงการเกิด Complications")
+    st.markdown("### 🔍 ประเมินความเสี่ยงการเกิด Complications")
     st.markdown("*(ฟอร์มนี้แสดงเฉพาะกลุ่มผู้ป่วยที่ต้องการการควบคุมอย่างเข้มข้น)*")
     
     col3, col4 = st.columns(2)
