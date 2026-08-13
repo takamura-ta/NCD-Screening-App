@@ -1,10 +1,6 @@
 import streamlit as st
 import math
 
-from fpdf import FPDF
-import tempfile
-import os
-
 # เพิ่มโค้ดส่วนนี้ไว้หลัง import
 st.warning("⚠️ **นี่คือเวอร์ชันทดสอบ (Demo/Beta)** เพื่อการพัฒนาฟีเจอร์ใหม่ หากพบข้อผิดพลาดกรุณาแจ้งผู้พัฒนา")
 
@@ -43,28 +39,13 @@ def calculate_thai_cv_risk(age, sex, sbp, dm, smoking, chol=0, waist=0, height=0
     risk_pct = predicted_risk * 100
     return max(0.0, min(100.0, risk_pct))
 
-def create_pdf_report(data):
-    pdf = FPDF()
-    pdf.add_page()
-    
-    # ดึงพาธของฟอนต์ (สมมติว่าอัปโหลดไว้ในโฟลเดอร์ fonts)
-    font_path = os.path.join("fonts", "THSarabunNew.ttf")
-    pdf.add_font("THSarabunNew", "", font_path, uni=True)
-    pdf.set_font("THSarabunNew", size=18)
-    
-    # เขียนหัวข้อ
-    pdf.cell(200, 10, txt="สรุปผลการคัดกรอง NCD", ln=True, align='C')
-    pdf.ln(10)
-    
-    # เขียนข้อมูล
-    for key, value in data.items():
-        # แปลงข้อความเป็น UTF-8 ให้แสดงผลภาษาไทย
-        text = f"{key}: {value}"
-        pdf.cell(200, 10, txt=text.encode('latin-1', 'replace').decode('latin-1'), ln=True)
-    
-    tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-    pdf.output(tmp_file.name)
-    return tmp_file.name
+# ปุ่มสั่งพิมพ์หน้าจอเป็น PDF ทันทีผ่านเบราว์เซอร์
+if st.button("🖨️ พิมพ์ / บันทึกรายงานเป็น PDF"):
+    st.markdown("""
+        <script>
+            window.print();
+        </script>
+    """, unsafe_allow_html=True)
     
 # --- ⚙️ การตั้งค่าหน้าจอ ---
 st.set_page_config(page_title="NCD Clinical Dashboard", layout="centered")
