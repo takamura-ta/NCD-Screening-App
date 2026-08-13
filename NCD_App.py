@@ -59,14 +59,14 @@ if dm_group == "เป็นเบาหวาน (กลุ่มสุขภ�
     with col4:
         foot = st.selectbox("🦶 การตรวจเท้า", ["ปกติ", "ผิดปกติ", "มีแผลที่เท้า / อาการ claudication", "Digital gangrene"])
         hypo = st.selectbox("📉 ประวัติ Hypoglycemia", ["ไม่มี / นานๆครั้ง", ">= 3 ครั้งต่อสัปดาห์", "รุนแรงจนต้องเข้านอน รพ. ในช่วง 3 เดือน"])
-        cvd = st.selectbox("🫀 โรคร่วม (HT, DLP, MI, Stroke)", ["ไม่มี", "มี แต่ควบคุมได้ (ตามเกณฑ์)", "มี แต่ควบคุมไม่ได้ (ตามเกณฑ์)", "Chest pain/Recent stroke <1 ปี/Recent MI <1 ปี/HF <3 เดือน"])
+        cvd = st.selectbox("🫀 โรคร่วม (HT, DLP, MI, Stroke)", ["ไม่มี", "มี แต่ควบคุมได้ตามเกณฑ์", "มี แต่ควบคุมไม่ได้ตามเกณฑ์", "Chest pain/Recent stroke <1 ปี/Recent MI <1 ปี/HF <3 เดือน"])
 
     # ประมวลผล Risk Level โดยอิงจากความรุนแรงสูงสุด (Worst-case scenario)
     if (hypo == "รุนแรงจนต้องเข้านอน รพ. ในช่วง 3 เดือน") or (renal == "มีอาการบวม หรือ CrCl < 30") or (eye == "Severe NPDR/PDR / มองไม่เห็นจนกระทบชีวิต") or (cvd == "Chest pain/Recent stroke <1 ปี/Recent MI <1 ปี/HF <3 เดือน") or (foot == "Digital gangrene"):
         risk_level = "ความเสี่ยงสูงมาก / มีโรคแทรกซ้อนรุนแรง 🚨"
-    elif (hba1c >= 8.0) or (hypo == ">= 3 ครั้งต่อสัปดาห์") or (uacr == ">300") or (renal == "CrCl < 60") or (eye == "Moderate NPDR / การมองเห็นลดลง") or (cvd == "มี แต่ควบคุมไม่ได้ (ตามเกณฑ์)") or (foot == "มีแผลที่เท้า / อาการ claudication"):
+    elif (hba1c >= 8.0) or (hypo == ">= 3 ครั้งต่อสัปดาห์") or (uacr == ">300") or (renal == "CrCl < 60") or (eye == "Moderate NPDR / การมองเห็นลดลง") or (cvd == "มี แต่ควบคุมไม่ได้ตามเกณฑ์") or (foot == "มีแผลที่เท้า / อาการ claudication"):
         risk_level = "ความเสี่ยงสูง 🔴"
-    elif (7.0 <= hba1c <= 7.5) or (uacr == "30-300") or (eye == "Mild NPDR") or (cvd == "มี แต่ควบคุมได้ (ตามเกณฑ์)") or (foot == "ผิดปกติ"):
+    elif (7.0 <= hba1c <= 7.5) or (uacr == "30-300") or (eye == "Mild NPDR") or (cvd == "มี แต่ควบคุมได้ตามเกณฑ์") or (foot == "ผิดปกติ"):
         risk_level = "ความเสี่ยงปานกลาง 🟡"
     else:
         risk_level = "ความเสี่ยงต่ำ 🟢"
