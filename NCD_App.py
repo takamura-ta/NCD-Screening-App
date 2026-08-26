@@ -316,11 +316,13 @@ if uploaded_file is not None:
                         if sbp >= 140 or dbp >= 90: 
                             reasons.append(f"HT: BP {sbp:.0f}/{dbp:.0f} (Target < 140/90)")
                             
-                    # [3] เบาหวาน (DM)
+                    # [3] เบาหวาน (DM) - ปรับปรุงคำอธิบายกลุ่มเปราะบาง
                     if is_dm:
                         if age > 75:
-                            if not (100 <= fpg <= 180): 
-                                reasons.append(f"DM: FPG {fpg:.0f} (Target 100-180)")
+                            if fpg < 100:
+                                reasons.append(f"DM (กลุ่มเปราะบาง): FPG {fpg:.0f} ต่ำเกินไป (Target 100-180 เพื่อป้องกันภาวะน้ำตาลต่ำ/ช็อก)")
+                            elif fpg > 180:
+                                reasons.append(f"DM (กลุ่มเปราะบาง): FPG {fpg:.0f} สูงเกินไป (Target 100-180 เพื่อป้องกันวิกฤตน้ำตาลสูง)")
                         elif age > 65 or has_ckd:
                             if fpg > 150 or hba1c >= 8.0: 
                                 reasons.append(f"DM: FPG {fpg:.0f}, HbA1c {hba1c:.1f}% (Target FPG 90-150, HbA1c < 8.0%)")
