@@ -255,3 +255,107 @@ if st.button("ประมวลผลการรักษา (Evaluate) 📊",
         st.warning("⚠️ **ส่งปรึกษาแพทย์เพื่อปรับการรักษา**")
     else:
         st.success("✅ **ดูแลต่อเนื่องตามแผนการรักษาเดิมได้ (ตามนัด)**")
+
+
+import pandas as pd
+import io
+
+st.markdown("---")
+st.header("📂 ระบบประมวลผลข้อมูลกลุ่ม (Batch Processing)")
+st.write("อัปโหลดไฟล์ NCD Lab ประจำปี (Excel) เพื่อคัดกรองคนไข้รวดเดียว 🚀")
+
+# 1. สร้างปุ่มอัปโหลดไฟล์
+uploaded_file = st.file_uploader("เลือกไฟล์ Excel ของ รพ.สต. 📁", type=["xlsx"])
+
+if uploaded_file is not None:
+    try:
+        # อ่านไฟล์ Excel (ข้ามบรรทัดแรกที่เป็น Header ว่างๆ เหมือนไฟล์ต้นฉบับ)
+        df = pd.read_excel(uploaded_file, sheet_name=0, header=1)
+        st.success(f"✅ โหลดข้อมูลสำเร็จ! พบรายชื่อคนไข้ทั้งหมด {len(df)} รายการ")
+        
+        if st.button("▶️ เริ่มการสแกนและประมวลผล (Run Analysis)"):
+            with st.spinner('กำลังประมวลผลทีละเคส... ⏳'):
+                status_list = []
+                reason_list = []
+                
+                # 2. วนลูปเช็คคนไข้ทีละคน
+                for idx, row in df.iterrows():
+                    reasons = []
+                    
+                    # ดึงข้อมูลมาแปลงค่า (จัดการค่าว่างด้วย)
+                    age = int(row['Age']) if pd.notnull(row['Age']) else 50
+                    sex = 1 if str(row['เพศ']).strip() == 'ชาย' else 0
+                    smoking = 1 if str(row['บุหรี่']).strip() == 'สูบ' else 0
+                    is_dm = 1 if 'DM' in str(row['DX']).strip().upper() else 0
+                    
+                    fpg = float(row['FBS (NaF)']) if pd.notnull(row['FBS (NaF)']) else 0
+                    hba1c = float(row['Hb A1C']) if pd.notnull(row['Hb A1C']) else 0
+                    sbp = float(row['SBP']) if pd.notnull(row['SBP']) else 0
+                    dbp = float(row['DBP']) if pd.notnull(row['DBP']) else 0
+                    tc = float(row['Cholesteral']) if pd.notnull(row['Cholesteral']) else 0
+                    
+                    # เคลียร์เครื่องหมาย < > ในผล Lab
+                    try: ldl = float(str(row['LDL']).replace('<','').replace('>','').strip())
+                    except: ldl = 0
+                        
+                    tg = float(row['Triglyceride']) if pd.notnull(row['Triglyceride']) else 0
+                    egfr = float(row['GFR']) if pd.notnull(row['GFR']) else 100
+                    has_ckd = True if egfr < 60 else False
+                    
+                    # --- 🧠 เริ่มใส่ Logic การคัดกรอง ---
+                    if has_ckd: reasons.append(f"eGFR ต่ำกว่า 60 ({egfr:.1f})")
+                    
+                    if age < 65:
+                        if sbp >= 130 or dbp >= 80: reasons.append(f"BPสูงกว่าเป้า <130/80 ({sbp:.0f}/{dbp:.0f})")
+                    else:
+                        if sbp >= 140 or dbp >= 90: reasons.append(f"BPสูงกว่าเป้า <140/90 ({sbp:.0f}/{dbp:.0f})")
+                            
+                    if is_dm:
+                        if age > 75:
+                            if not (100 <= fpg <= 180): reasons.append(f"FPG อยู่นอกเป้า 100-180 ({fpg:.0f})")
+                        elif age > 65 or has_ckd:
+                            if fpg > 150 or hba1c >= 8.0: reasons.append(f"DMสูงกว่าเป้า (FPG {fpg:.0f}/HbA1c {hba1c:.1f})")
+                        else:
+                            if fpg > 130 or fpg < 80 or hba1c > 7.5: reasons.append(f"DMไม่ตามเป้าเข้มข้น (FPG {fpg:.0f}/HbA1c {hba1c:.1f})")
+                    else:
+                        if fpg >= 126 or hba1c >= 6.5: reasons.append(f"เข้าเกณฑ์ DM (FPG {fpg:.0f}/HbA1c {hba1c:.1f})")
+                            
+                    # คำนวณ ASCVD Risk
+                    ascvd_risk = calculate_thai_cv_risk(age, sex, sbp, is_dm, smoking, chol=tc)
+                    dlp_target = 999
+                    if is_dm or has_ckd or ascvd_risk > 10.0: dlp_target = 100
+                        
+                    if ldl > 0 and dlp_target != 999:
+                        if ldl >= dlp_target: reasons.append(f"LDLสูงกว่า {dlp_target} ({ldl:.0f})")
+                        elif is_dm and age >= 40 and tg >= 150: reasons.append(f"TGสูงกว่า 150 ในคนไข้ DM ({tg:.0f})")
+                            
+                    # 3. สรุปผลรายบุคคล
+                    if len(reasons) > 0:
+                        status_list.append("พบแพทย์")
+                        reason_list.append(" | ".join(reasons))
+                    else:
+                        status_list.append("ไม่ต้องพบแพทย์")
+                        reason_list.append("-")
+
+                # 4. นำผลลัพธ์ใส่กลับลงไปในตาราง
+                df['สรุปผลการประเมิน'] = status_list
+                df['หมายเหตุ'] = reason_list
+                
+                st.success("🎉 ประมวลผลเสร็จสิ้นเรียบร้อยแล้ว!")
+                
+                # แสดงตัวอย่างผลลัพธ์บนหน้าเว็บ 5 คนแรก
+                st.write(df[['ชื่อผู้ป่วย', 'สรุปผลการประเมิน', 'หมายเหตุ']].head())
+                
+                # 5. แปลงตารางเป็นไฟล์ Excel ให้ดาวน์โหลด
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                    df.to_excel(writer, index=False, sheet_name='Result')
+                
+                st.download_button(
+                    label="📥 ดาวน์โหลดไฟล์ผลลัพธ์ (Excel)",
+                    data=output.getvalue(),
+                    file_name="Processed_NCD_Lab.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+    except Exception as e:
+        st.error(f"❌ รูปแบบไฟล์ไม่ถูกต้อง หรือเกิดข้อผิดพลาด: {e}")
