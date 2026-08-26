@@ -302,32 +302,46 @@ if uploaded_file is not None:
                     egfr = float(row['GFR']) if pd.notnull(row['GFR']) else 100
                     has_ckd = True if egfr < 60 else False
                     
-                    # --- 🧠 เริ่มใส่ Logic การคัดกรอง ---
-                    if has_ckd: reasons.append(f"eGFR ต่ำกว่า 60 ({egfr:.1f})")
+                    # --- 🧠 เริ่มใส่ Logic การคัดกรอง (เพิ่ม Target of control) ---
                     
+                    # [1] ไต (CKD)
+                    if has_ckd: 
+                        reasons.append(f"CKD: eGFR {egfr:.1f} (Target ≥ 60)")
+                    
+                    # [2] ความดันโลหิต (HT)
                     if age < 65:
-                        if sbp >= 130 or dbp >= 80: reasons.append(f"BPสูงกว่าเป้า <130/80 ({sbp:.0f}/{dbp:.0f})")
+                        if sbp >= 130 or dbp >= 80: 
+                            reasons.append(f"HT: BP {sbp:.0f}/{dbp:.0f} (Target < 130/80)")
                     else:
-                        if sbp >= 140 or dbp >= 90: reasons.append(f"BPสูงกว่าเป้า <140/90 ({sbp:.0f}/{dbp:.0f})")
+                        if sbp >= 140 or dbp >= 90: 
+                            reasons.append(f"HT: BP {sbp:.0f}/{dbp:.0f} (Target < 140/90)")
                             
+                    # [3] เบาหวาน (DM)
                     if is_dm:
                         if age > 75:
-                            if not (100 <= fpg <= 180): reasons.append(f"FPG อยู่นอกเป้า 100-180 ({fpg:.0f})")
+                            if not (100 <= fpg <= 180): 
+                                reasons.append(f"DM: FPG {fpg:.0f} (Target 100-180)")
                         elif age > 65 or has_ckd:
-                            if fpg > 150 or hba1c >= 8.0: reasons.append(f"DMสูงกว่าเป้า (FPG {fpg:.0f}/HbA1c {hba1c:.1f})")
+                            if fpg > 150 or hba1c >= 8.0: 
+                                reasons.append(f"DM: FPG {fpg:.0f}, HbA1c {hba1c:.1f}% (Target FPG 90-150, HbA1c < 8.0%)")
                         else:
-                            if fpg > 130 or fpg < 80 or hba1c > 7.5: reasons.append(f"DMไม่ตามเป้าเข้มข้น (FPG {fpg:.0f}/HbA1c {hba1c:.1f})")
+                            if fpg > 130 or fpg < 80 or hba1c > 7.5: 
+                                reasons.append(f"DM: FPG {fpg:.0f}, HbA1c {hba1c:.1f}% (Target FPG 80-130, HbA1c 6.5-7.5%)")
                     else:
-                        if fpg >= 126 or hba1c >= 6.5: reasons.append(f"เข้าเกณฑ์ DM (FPG {fpg:.0f}/HbA1c {hba1c:.1f})")
+                        if fpg >= 126 or hba1c >= 6.5: 
+                            reasons.append(f"Screening: FPG {fpg:.0f}, HbA1c {hba1c:.1f}% (เข้าเกณฑ์สงสัย DM | Target FPG < 100, HbA1c < 5.7%)")
                             
-                    # คำนวณ ASCVD Risk
+                    # [4] ไขมันและหลอดเลือดหัวใจ (DLP & ASCVD)
                     ascvd_risk = calculate_thai_cv_risk(age, sex, sbp, is_dm, smoking, chol=tc)
                     dlp_target = 999
-                    if is_dm or has_ckd or ascvd_risk > 10.0: dlp_target = 100
+                    if is_dm or has_ckd or ascvd_risk > 10.0: 
+                        dlp_target = 100
                         
                     if ldl > 0 and dlp_target != 999:
-                        if ldl >= dlp_target: reasons.append(f"LDLสูงกว่า {dlp_target} ({ldl:.0f})")
-                        elif is_dm and age >= 40 and tg >= 150: reasons.append(f"TGสูงกว่า 150 ในคนไข้ DM ({tg:.0f})")
+                        if ldl >= dlp_target: 
+                            reasons.append(f"DLP: LDL {ldl:.0f} (Target < {dlp_target})")
+                        elif is_dm and age >= 40 and tg >= 150: 
+                            reasons.append(f"DLP: TG {tg:.0f} (Target < 150 สำหรับ DM อายุ ≥ 40 ปี)")
                             
                     # 3. สรุปผลรายบุคคล
                     if len(reasons) > 0:
@@ -354,7 +368,7 @@ if uploaded_file is not None:
                 st.download_button(
                     label="📥 ดาวน์โหลดไฟล์ผลลัพธ์ (Excel)",
                     data=output.getvalue(),
-                    file_name="Processed_NCD_Lab.xlsx",
+                    file_name="Processed_NCD_Lab_With_Target.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
     except Exception as e:
