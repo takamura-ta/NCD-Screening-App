@@ -49,7 +49,7 @@ with col_demo1:
     sex_input = st.radio("เพศ 🚻", ["ชาย", "หญิง"])
     sex = 1 if sex_input == "ชาย" else 0
     smoking_input = st.radio("ประวัติสูบบุหรี่ 🚬", ["ไม่สูบ/เลิกสูบบุหรี่", "ปัจจุบันสูบบุหรี่"])
-    smoking = 1 if smoking_input == "ปัจจุบันสูบปัจจุบัน" else 0
+    smoking = 1 if smoking_input == "ปัจจุบันสูบบุหรี่" else 0
 
 with col_demo2:
     height = st.number_input("ส่วนสูง (ซม.) 📏", value=165.0)
@@ -269,8 +269,8 @@ uploaded_file = st.file_uploader("เลือกไฟล์ Excel ของ �
 
 if uploaded_file is not None:
     try:
-        # อ่านไฟล์ Excel (ข้ามบรรทัดแรกที่เป็น Header ว่างๆ เหมือนไฟล์ต้นฉบับ)
-        df = pd.read_excel(uploaded_file, sheet_name=0, header=1)
+        # อ่านไฟล์ Excel โดยบังคับใช้ openpyxl เป็นตัวอ่าน
+        df = pd.read_excel(uploaded_file, sheet_name=0, header=1, engine='openpyxl')
         st.success(f"✅ โหลดข้อมูลสำเร็จ! พบรายชื่อคนไข้ทั้งหมด {len(df)} รายการ")
         
         if st.button("▶️ เริ่มการสแกนและประมวลผล (Run Analysis)"):
